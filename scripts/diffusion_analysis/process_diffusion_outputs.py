@@ -380,6 +380,7 @@ def main():
     parser.add_argument("--outdir", type=str, default="filtered_structures", help="Where are outputs moved?")
     parser.add_argument("--partial", action="store_true", default=False, help="Are you running this on partial diffusion output?")
     parser.add_argument("--nproc", default=os.cpu_count(), type=int, help="# of CPU cores used")
+    parser.add_argument("--ncdist", default = None, help="Distance between C and N terminus that is allowed")
     args = parser.parse_args()
     
     pdbfiles = args.pdb
@@ -461,9 +462,10 @@ def main():
     q = queue.Queue()
 
     datacolumns = ["chainbreak", "loop_frac", "longest_helix", "loop_at_motif", "rog", "rCA_nonadj",
-                   "lig_dist", "term_mindist", "SASA", "SASA_rel"]
+                   "lig_dist", "term_mindist", "SASA", "SASA_rel", "ncdist"]
     if args.ligand_exposed_atoms is not None:
         datacolumns.append("SASA_exposed_atoms")
+    
 
     datacolumns.append("description")
     df = pd.DataFrame(columns=datacolumns)
@@ -710,9 +712,11 @@ def main():
                     ### Checking how far C and N termini are from the ligand
                     d_Nt_lig = (pose2.residue(1).xyz("CA") - pose2.residue(pose2.size()).nbr_atom_xyz()).norm()
                     d_Ct_lig = (pose2.residue(pose2.size()-1).xyz("CA") - pose2.residue(pose2.size()).nbr_atom_xyz()).norm()
+                    d_Ct_Nt = (pose2.residue(pose2.size()-1).xyz("CA") - pose2.residue(1).xyz("CA")).norm()
                     
                     term_mindist = min([d_Nt_lig, d_Ct_lig])
                     scores[i]["term_mindist"] = term_mindist
+                    scores[i]["ncdist"] = d_Ct_Nt
         
                     if args.analyze is False and term_mindist < args.term_limit:
                         print(f"{pdbfile}: terminus too close to ligand: {term_mindist:.2f}")

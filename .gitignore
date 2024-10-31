@@ -9,3 +9,4 @@ lib/LigandMPNN/model_params/
 lib/LigandMPNN/__pycache__/
 lib/LigandMPNN/.ipynb_checkpoints/
 input/
+rosetta_python/

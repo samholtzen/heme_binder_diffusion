@@ -1,12 +1,18 @@
 import os,sys
-import mock
 import numpy as np
 import tempfile
 from typing import Dict
 from timeit import default_timer as timer
 
+os.environ['TF_FORCE_UNIFIED_MEMORY'] = '1'
+os.environ['XLA_PYTHON_CLIENT_MEM_FRACTION'] = '4.0'
+os.environ["XLA_CPU_MULTI_THREAD_EIGEN"] = 'false'
+os.environ["INTRA_OP_PARALLELISM_THREADS"] = '1'
+os.environ["CUDA_VISIBLE_DEVICES"] = "6,7"
+
 SCRIPT_DIR = os.path.dirname(__file__)
 sys.path.append(f"{SCRIPT_DIR}/../../lib/alphafold")
+
 from alphafold.common import protein
 from alphafold.data import pipeline
 from alphafold.data import templates
@@ -14,12 +20,8 @@ from alphafold.data import parsers
 from alphafold.model import data
 from alphafold.model import config
 from alphafold.model import model
-
+import mock
 from jax.lib import xla_bridge
-
-os.environ['TF_FORCE_UNIFIED_MEMORY'] = '1'
-os.environ['XLA_PYTHON_CLIENT_MEM_FRACTION'] = '2.0'
-
 
 def predict_sequences(sequences, models, nrecycles, scorefile=None, random_seed=None, nstruct=1, npy=False):
     # setup which models to use

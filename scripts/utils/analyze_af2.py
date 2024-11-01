@@ -167,6 +167,7 @@ def main():
     parser.add_argument('--posdict', type=str, help='A JSON file that defines per-chain residue numbers for pocket sidechain rmsd calculation for each reference structure.')
     parser.add_argument('--no_align', action="store_true", default=False, help='Calculates rmsd by Rosetta CA superimposition. Alternative (False) calculates rmsd by distance matrix difference')
     parser.add_argument('--out', type=str, default="scores.sc", help='Name of output scorefile')
+    parser.add_argument('--nproc', type=int, default=1, help='Number of cores you want to run this script on')
 
     args = parser.parse_args()
 
@@ -177,6 +178,7 @@ def main():
     mpnn_naming = args.mpnn
     lddt_cutoff = args.lddt
     pocket_rmsd = args.pocket
+    nproc = args.nproc
 
     pocket_df = pd.DataFrame()
 
@@ -349,13 +351,7 @@ def main():
                 pocket_results[idx]["ref_name"] = ref_name
 
 
-
-
-    if "OMP_NUM_THREADS" in os.environ:
-        N_PROCESSES = int(os.environ["OMP_NUM_THREADS"])
-        print(f"Using {N_PROCESSES} processes")
-    else:
-        N_PROCESSES = os.cpu_count() - 1
+    N_PROCESSES = nproc
 
 
     pool = multiprocessing.Pool(processes=N_PROCESSES,

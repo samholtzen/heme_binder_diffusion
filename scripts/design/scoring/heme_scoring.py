@@ -52,7 +52,7 @@ def score_design(pose, sfx, catres):
 
     fix_scorefxn(sfx)
 
-    df_scores.at[0, 'corrected_ddg'] = calculate_ddg(pose, sfx, catres[0])
+    df_scores.at[0, 'corrected_ddg'] = calculate_ddg(pose, sfx)
 
     # Calculating relative ligand SASA
     # First figuring out what is the path to the ligand PDB file
@@ -67,16 +67,16 @@ def score_design(pose, sfx, catres):
     df_scores.at[0, 'L_SASA'] = ligand_sasa / free_ligand_sasa
 
 
-    # Using a custom function to find HBond partners of the COO groups.
-    for n in range(1, 5):
-        df_scores.at[0, f"O{n}_hbond"] = scoring_utils.find_hbonds_to_residue_atom(pose, ligand_seqpos, f"O{n}")
+    # # Using a custom function to find HBond partners of the COO groups.
+    # for n in range(1, 5):
+    #     df_scores.at[0, f"O{n}_hbond"] = scoring_utils.find_hbonds_to_residue_atom(pose, ligand_seqpos, f"O{n}")
 
 
-    # Checking if both COO groups on heme are hbonded
-    if any([df_scores.at[0, x] > 0.0 for x in ['O1_hbond', 'O3_hbond']]) and any([df_scores.at[0, x] > 0.0 for x in ['O2_hbond', 'O4_hbond']]):
-        df_scores.at[0, 'COO_hbond'] = 1.0
-    else:
-        df_scores.at[0, 'COO_hbond'] = 0.0
+    # # Checking if both COO groups on heme are hbonded
+    # if any([df_scores.at[0, x] > 0.0 for x in ['O1_hbond', 'O3_hbond']]) and any([df_scores.at[0, x] > 0.0 for x in ['O2_hbond', 'O4_hbond']]):
+    #     df_scores.at[0, 'COO_hbond'] = 1.0
+    # else:
+    #     df_scores.at[0, 'COO_hbond'] = 0.0
 
     # Calculating ContactMolecularSurface
     cms = pyrosetta.rosetta.protocols.simple_filters.ContactMolecularSurfaceFilter()
@@ -127,9 +127,9 @@ def filter_scores(scores):
 filters = {"all_cst": [1.5, "<="],
            "L_SASA": [0.20, "<="],
            "COO_hbond": [1.0, "="],
-           "cms_per_atom": [5.0, ">="],
-           "corrected_ddg": [-50.0, "<="],
+           "cms_per_atom": [4.0, ">="],
+           "corrected_ddg": [-2.0, "<="],
            "nlr_totrms": [0.8, "<="],
            "nlr_SR1_rms": [0.6, "<="]}
 
-align_atoms = ["N1", "N2", "N3", "N4"]
+align_atoms = ["N1", "P1", "C16", "S1"]

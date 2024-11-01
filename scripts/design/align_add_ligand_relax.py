@@ -140,7 +140,7 @@ if __name__ == "__main__":
     if NPROC > 1:
         multithreading = f"-multithreading true -multithreading:total_threads {NPROC} -multithreading:interaction_graph_threads {NPROC}"
 
-    pyr.init(f"-dalphaball {DAB} -beta_nov16 {extra_res_fa} -run:preserve_header {multithreading}")
+    pyr.init(f"-dalphaball {DAB} -beta_nov16 {extra_res_fa} -run:preserve_header {multithreading} -mute all")
 
 
     """

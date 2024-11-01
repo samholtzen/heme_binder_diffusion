@@ -15,6 +15,7 @@ import copy
 import time
 import scipy.spatial
 import io
+import torch
 
 import setup_fixed_positions_around_target
 
@@ -210,7 +211,8 @@ def fix_catalytic_residue_rotamers(pose, ref_pose, catalytic_residues):
             mutres.apply(_pose)
     return _pose
 
-
+torch.set_num_threads(1)
+torch.set_num_interop_threads(1)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--pdb", required=True, type=str, help="Input PDB")
@@ -225,13 +227,14 @@ parser.add_argument("--keep_native", nargs="+", type=str, help="Residue position
 parser.add_argument("--trb", type=str, help="TRB file associated with the input scaffold. Required only when using --keep_native flag.")
 parser.add_argument("--design_full", action="store_true", default=False, help="All positions are set designable. Apart from catalytic residues and those provided with --keep_native")
 parser.add_argument("--iterate", action="store_true", default=False, help="runs mpnn/FastRelax iteratively")
+parser.add_argument("--nproc", type=int, default=2)
 
 args = parser.parse_args()
 
 INPUT_PDB = args.pdb
 params = args.params
 scorefilename = "scorefile.txt"
-
+nproc = args.nproc
 
 
 ## Loading the user-provided scoring module
@@ -256,12 +259,7 @@ if args.params is not None:
     for p in args.params:
         extra_res_fa += f" {p}"
 
-NPROC = os.cpu_count()
-if "SLURM_CPUS_ON_NODE" in os.environ:
-    NPROC = os.environ["SLURM_CPUS_ON_NODE"]
-elif "OMP_NUM_THREADS" in os.environ:
-    NPROC = os.environ["OMP_NUM_THREADS"]
-
+NPROC = nproc
 
 DAB = f"{SCRIPT_PATH}/../utils/DAlphaBall.gcc" # This binary was compiled on UW systems. It may or may not work correctly on yours
 assert os.path.exists(DAB), "Please compile DAlphaBall.gcc and manually provide a path to it in this script under the variable `DAB`\n"\
@@ -347,6 +345,7 @@ if args.align_atoms is None:
     align_atoms = scoring.align_atoms
 else:
     align_atoms = args.align_atoms
+    
 ligand_rotamers_noclash = find_nonclashing_rotamers(pose, ligand_rotamers, ligand_resno, align_atoms)
 
 
@@ -366,7 +365,7 @@ else:
                                                                       residues=[n for n in range(1, pose.size()) if n not in catalytic_resnos])
     clashes = [x for x in clashes if pose.residue(x).name3() not in ["ALA", "GLY", "PRO"] and x not in keep_native]
     _pose3 = design_utils.mutate_residues(pose, clashes, "ALA")
-    cst_mover.add_cst(_pose3)
+    # cst_mover.add_cst(_pose3)
     fastRelax.apply(_pose3)
 
     cst_score = sum([_pose3.scores[s] for s in _pose3.scores if "constraint" in s])

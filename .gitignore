@@ -1,0 +1,12 @@
+ACO_binders/
+theozyme/
+lib/alphafold/
+rf_diffusion_all_atom/
+heme_binders/
+lib/LigandMPNN/inputs/
+lib/LigandMPNN/outputs/
+lib/LigandMPNN/model_params/
+lib/LigandMPNN/__pycache__/
+lib/LigandMPNN/.ipynb_checkpoints/
+input/
+rosetta_python/
